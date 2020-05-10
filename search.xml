@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>歡迎來到星幻的blog</title>
+    <url>/2020/05/10/2020/post1/</url>
+    <content><![CDATA[<center><font size="10" face="微软雅黑">歡迎來到星幻的Blog</font></center>
+<center><font size="5">這里是星幻更新小說或是分享日常瑣事的地方喔,致請期待</font></center>
+<div style="text-align: center"> <img src="https://qzlpfw.ch.files.1drv.com/y4mgV91jQCpPf3PE6C2ADHLYWUp5lga_CPpCPgboS9yw4vI3q00UrlPpqHvXCU3So9IzuwYcksCIO1utIo2sYgniOAWiqMP42ireucA5XwVeWzQvyTlJY-XxrPdLC7Ep9_H1BTskHXleRL82CFSKKdgDBSPBVGhdV5EC9XxC6zZnmUAnfHJMY5lREbEZix6GfQnx6J9UW76TNGSVNl7bBIRNQ?width=1920&height=1200&cropmode=none"> </div>
+<center><font color="gray">最後，願星眼沒有食材</font></center>]]></content>
+      <categories>
+        <category>簡介</category>
+      </categories>
+      <tags>
+        <tag>介紹</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>post2</title>
+    <url>/2020/05/10/2020/post2/</url>
+    <content><![CDATA[<center><h1>blog施工結束</h1></center>
+這里是星幻,尽管整个blog都是通過HEXO和模版建設的,但依然花了我不少的時間去配置
+
+<p><font color=White>特別在我完全是个java和html新手的情況下</font></p>
+<p>如果你也是一个新手並打算建立一个blog的話,可以到网上找找用HEXO架設的Github靜態网站教學,相關的資料是絕對可以支持你自建一个blog的.</p>
+<p>以及,再次發現B站真是个學習的好地方</p>
+<center><img src="https://qdlpfw.ch.files.1drv.com/y4mdnSFGIxF_1C227z_POicCnc6f1Zc6uSzZBVO_GF4iQXebTTxnsDx5hs0iV22ImmY-as-0K_IzKzNjdEEkB8denqfYJ-bRgYxrTHYSWS55CClptrs3jNEQh8TnrkO0Exifcg0mDwgccdmxO0pt0hRWeUos9VYBrsSVC5VsbYqGQFv7nVXQ9ZtkKLh_lKBgLCTV9j1GgPejeOrXrJAgLBDMA?width=552&height=552&cropmode=none"/></center>]]></content>
+      <categories>
+        <category>日常</category>
+      </categories>
+      <tags>
+        <tag>日常</tag>
+        <tag>blog</tag>
+      </tags>
+  </entry>
+</search>

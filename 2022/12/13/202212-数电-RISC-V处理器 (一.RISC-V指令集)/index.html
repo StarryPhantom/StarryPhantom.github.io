@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  <link rel="icon" href="/images/StarCafe.jpg">
+  <title>RISC-V处理器 (一.RISC-V指令集) | 星間庭園</title>
+  <meta name="author" content="星幻" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="RISC-V, 简易CPU" />
+  
+  <meta name="description" content="本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正   一.RISC-V RISC-V为伯克利研究团队基于精简指令集计算原理建立的一个开放指令集架构。由于其开源、模型化及指令长度固定等特点而被应用于学习及嵌入式领域当中。 详见：什么是RISC-V-知乎  二.RISC-V指令 作为大型开源项目，RISC-V的官方技术文档可于Github上搜索得到并下载。此外，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RISC-V处理器 (一.RISC-V指令集)">
+<meta property="og:url" content="https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/index.html">
+<meta property="og:site_name" content="星間庭園">
+<meta property="og:description" content="本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正   一.RISC-V RISC-V为伯克利研究团队基于精简指令集计算原理建立的一个开放指令集架构。由于其开源、模型化及指令长度固定等特点而被应用于学习及嵌入式领域当中。 详见：什么是RISC-V-知乎  二.RISC-V指令 作为大型开源项目，RISC-V的官方技术文档可于Github上搜索得到并下载。此外，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/RISC-V-Logo.jpg">
+<meta property="article:published_time" content="2022-12-13T03:12:58.000Z">
+<meta property="article:modified_time" content="2022-12-13T11:21:39.433Z">
+<meta property="article:author" content="星幻">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="简易CPU">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/RISC-V-Logo.jpg">
+  
+  <!-- 站点验证相关 -->
+  
+    
+    
+    
+  
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kratosr.min.css" type="text/css" media="all">
+  
+    <link rel="stylesheet" id="darkmode-css" href="/css/kr-color-dark.min.css" type="text/css" media="(prefers-color-scheme: dark)">
+    <script src="/js/kr-dark.min.js"></script>
+  
+  
+    <link rel="stylesheet" id="highlight-css" href="/css/highlight/night-eighties.min.css" type="text/css" media="all">
+  
+  
+  <link rel="stylesheet" id="fontawe-css" href="https://unpkg.com/font-awesome@4.7.0/css/font-awesome.min.css" type="text/css" media="all">
+  <link rel="stylesheet" id="nprogress-css" href="https://unpkg.com/nprogress@0.2.0/nprogress.css" type="text/css" media="all">
+  
+  
+  
+    <link rel="stylesheet" href="https://unpkg.com/aplayer@1.10.1/dist/APlayer.min.css">
+  
+  
+    <link rel="stylesheet" href="https://unpkg.com/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+  
+  <!-- 不得不预先加载的一些JS文件 -->
+  <script src="https://unpkg.com/jquery@3.6.0/dist/jquery.min.js"></script>
+  
+    <script src="https://unpkg.com/qrcode_js@1.0.0/qrcode.min.js"></script>
+  
+  
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('/images/banner.webp');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/bg.webp');
+        }
+      }
+    
+  </style>
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    
+                                        <li><a href="/"><i class="fa fa-home"></i>首页</a></li>
+                                    
+                                
+                                    
+                                        <li><a href="/archives/"><i class="fa fa-file"></i>档案馆</a></li>
+                                    
+                                
+                                    
+                                        <li><a href="/friends/"><i class="fa fa-paw"></i>朋友们</a></li>
+                                    
+                                
+                                    
+                                        <li>
+                                            <a><i class="fa fa-link"></i>联系方式</a>
+                                            <ul class="sub-menu">
+                                                
+                                                    
+                                                
+                                                    
+                                                        <li><a target="_blank" rel="noopener" href="https://qm.qq.com/cgi-bin/qm/qr?k=JRIfUfccKhUE8SuvGkk-bWc6yKutGUHT&noverify=0">作者QQ</a></li>
+                                                    
+                                                
+                                                    
+                                                        <li><a target="_blank" rel="noopener" href="https://jq.qq.com/?_wv=1027&k=OO2Rsxzm">群-星间庭园</a></li>
+                                                    
+                                                
+                                            </ul>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">星間庭園</a></div>
+                    <div class="nav-toggle">
+                        <a class="kratos-nav-toggle js-kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>星間庭園</h2> <br />
+                        <span>欢迎來到星間庭園,要來杯红茶嗎</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+                    
+                        
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/avatar.jpg" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center">一颗追逐星眼的微尘~</p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                11
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                5
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                11
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix">
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80risc-v"><span class="toc-text"> 一.RISC-V</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8Crisc-v%E6%8C%87%E4%BB%A4"><span class="toc-text"> 二.RISC-V指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#risc-v%E6%8C%87%E4%BB%A4%E7%BB%93%E6%9E%84"><span class="toc-text"> RISC-V指令结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#rv32i-%E5%9F%BA%E7%A1%80%E6%95%B4%E6%95%B0%E6%8C%87%E4%BB%A4%E9%9B%86"><span class="toc-text"> RV32I 基础整数指令集</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E6%95%B0%E5%AD%A6%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-text"> 寄存器的数学&#x2F;逻辑运算指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AB%8B%E5%8D%B3%E6%95%B0%E7%9A%84%E6%95%B0%E5%AD%A6%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-text"> 立即数的数学&#x2F;逻辑运算指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E8%AF%BB%E5%8F%96%E6%8C%87%E4%BB%A4"><span class="toc-text"> 内存读取指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%82%A8%E5%AD%98%E6%8C%87%E4%BB%A4"><span class="toc-text"> 内存储存指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8%E7%9A%84%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC"><span class="toc-text"> 程序计数器的分支跳转</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%8C%87%E4%BB%A4"><span class="toc-text"> 其他指令</span></a></li></ol></li></ol></li></ol></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类目录</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Blog/">Blog</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B0%8F%E8%AF%B4/">小说</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E7%94%B5/">数电</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%A8%A1%E7%94%B5/">模电</a><span class="category-list-count">2</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/Blog/" style="font-size: 0.7em;">Blog</a> <a href="/tags/Hexo/" style="font-size: 0.6em;">Hexo</a> <a href="/tags/RISC-V/" style="font-size: 0.6em;">RISC-V</a> <a href="/tags/%E5%8D%8A%E5%AF%BC%E4%BD%93%E5%99%A8%E4%BB%B6/" style="font-size: 0.7em;">半导体器件</a> <a href="/tags/%E5%B0%8F%E8%AF%B4/" style="font-size: 0.8em;">小说</a> <a href="/tags/%E5%B2%9A%E6%98%9F%E6%B8%B8%E8%AE%B0/" style="font-size: 0.7em;">岚星游记</a> <a href="/tags/%E6%95%B0%E7%94%B5/" style="font-size: 0.6em;">数电</a> <a href="/tags/%E6%A8%A1%E7%94%B5/" style="font-size: 0.8em;">模电</a> <a href="/tags/%E7%AE%80%E6%98%93CPU/" style="font-size: 0.6em;">简易CPU</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 0.7em;">脚本</a> <a href="/tags/%E8%A1%A5%E6%A1%A3/" style="font-size: 0.6em;">补档</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/"><i class="fa  fa-book"></i> RISC-V处理器 (一.RISC-V指令集)</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/06/202210_%E5%B0%8F%E8%AA%AA_%E5%B2%9A%E6%98%9F%E6%B8%B8%E8%A8%98-%E7%AC%AC%E4%BA%8C%E7%AB%A0/"><i class="fa  fa-book"></i> 岚星游記-第二章</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/01/202211_%E6%95%B0%E7%94%B5_TTL%E9%80%BB%E8%BE%91%E9%97%A8/"><i class="fa  fa-book"></i> 逻辑门的电路实现</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/01/202211_%E6%A8%A1%E7%94%B5_%E5%8D%8A%E5%AF%BC%E4%BD%93%E4%BA%8C%E6%9E%81%E7%AE%A1%E6%A8%A1%E5%9E%8B/"><i class="fa  fa-book"></i> 模电笔记-半导体二极管模型</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/09/07/202209_%E5%B0%8F%E8%AA%AA_%E5%B2%9A%E6%98%9F%E6%B8%B8%E8%A8%98_%E7%AC%AC%E4%B8%80%E7%AB%A0/"><i class="fa  fa-book"></i> 岚星游記_第一章</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+                    
+
+        
+
+            <section class="col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    
+    <link itemprop="mainEntityOfPage" href="https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/">
+    <div class="kratos-hentry kratos-post-inner clearfix">
+        <header class="kratos-entry-header">
+            
+                <h1 class="kratos-entry-title text-center" itemprop="name headline">RISC-V处理器 (一.RISC-V指令集)</h1>
+            
+            
+            <ul class="kratos-post-meta text-center">
+                <li><time datetime="2022-12-13T03:12:58.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2022-12-13</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">星幻</span>
+                </li>
+                <li>
+                    <i class="fa fa-edit"></i> 
+                    
+                    
+                        ~4.76K
+                    
+                    字
+                </li>
+                
+                    <li id="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/" class="leancloud_visitors" data-flag-title="RISC-V处理器 (一.RISC-V指令集)">
+                        <i class="fa fa-eye"></i>
+                        <span class="leancloud-visitors-count"> </span> 次阅读
+                    </li>
+                    
+                        <li>
+                            <i class="fa fa-commenting-o"></i>
+                            <span data-xid="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/" class="waline-comment-count"> </span> 条评论
+                        </li>
+                    
+                
+            </ul>
+        </header>
+        <div class="kratos-post-content">
+            <div id="expire-alert" class="alert alert-warning hidden" role="alert">
+                <div class="icon"><i class="fa fa-warning"></i></div>
+                <div class="text"><p>本文最后编辑于 <time datetime="1670930499433"></time> 前，其中的内容可能需要更新。</p></div>
+            </div>
+            
+                <div class="kratos-post-inner-toc">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80risc-v"><span class="toc-number">1.</span> <span class="toc-text"> 一.RISC-V</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8Crisc-v%E6%8C%87%E4%BB%A4"><span class="toc-number">2.</span> <span class="toc-text"> 二.RISC-V指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#risc-v%E6%8C%87%E4%BB%A4%E7%BB%93%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text"> RISC-V指令结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#rv32i-%E5%9F%BA%E7%A1%80%E6%95%B4%E6%95%B0%E6%8C%87%E4%BB%A4%E9%9B%86"><span class="toc-number">2.1.1.</span> <span class="toc-text"> RV32I 基础整数指令集</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E6%95%B0%E5%AD%A6%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.1.1.</span> <span class="toc-text"> 寄存器的数学&#x2F;逻辑运算指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AB%8B%E5%8D%B3%E6%95%B0%E7%9A%84%E6%95%B0%E5%AD%A6%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.1.2.</span> <span class="toc-text"> 立即数的数学&#x2F;逻辑运算指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E8%AF%BB%E5%8F%96%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.1.3.</span> <span class="toc-text"> 内存读取指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%82%A8%E5%AD%98%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.1.4.</span> <span class="toc-text"> 内存储存指令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8%E7%9A%84%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC"><span class="toc-number">2.1.1.5.</span> <span class="toc-text"> 程序计数器的分支跳转</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.1.6.</span> <span class="toc-text"> 其他指令</span></a></li></ol></li></ol></li></ol></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><p style="color:#5F9EA0;">本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正</p>
+<hr>
+<h2 id="一risc-v"><a class="markdownIt-Anchor" href="#一risc-v"></a> 一.RISC-V</h2>
+<p>RISC-V为伯克利研究团队基于精简指令集计算原理建立的一个开放指令集架构。由于其开源、模型化及指令长度固定等特点而被应用于学习及嵌入式领域当中。</p>
+<p>详见：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/49176102">什么是RISC-V-知乎</a></p>
+<h2 id="二risc-v指令"><a class="markdownIt-Anchor" href="#二risc-v指令"></a> 二.RISC-V指令</h2>
+<p>作为大型开源项目，RISC-V的官方技术文档可于Github上搜索得到并下载。此外，CSDN及知乎上亦有相关指令集介绍与表格可供参考，因此本文仅对RISC-V的指令架构作简略描述。</p>
+<h3 id="risc-v指令结构"><a class="markdownIt-Anchor" href="#risc-v指令结构"></a> RISC-V指令结构</h3>
+<p>RISC-V指令包含数个主要结构，分别为访问寄存器的R-Type，使指指令中立即数进行操作的I-Type，储存至内存中的S-Type，判断分支执行的B-Type，执行跳转的J-Type，以及包含20位立即数的U-Type。</p>
+<p>对于下方图表，opcode为指令操作码，rs1与rs2均为源寄存器地址，rd为目标寄存器地址，funct3及funct7为操作指令，imm为立即数，即计算机对该数据进行简易操作（扩展）后直接传递至计算单元进行运算的数据，其特点为数据被保存至指令中而无需访问寄存器。下表中imm[ <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub><mo>:</mo><msub><mi>X</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">X_1:X_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> ]表示数据的长度为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub><mo>−</mo><mi>X</mi><mn>2</mn><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">X_1-X2+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span></span></span></span>位二进制编码，其顺序按高至低位排列，如11-0，20-0。</p>
+<p><img src="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/opcode.jpg" alt="主要指令结构"></p>
+<p>RV32指令集的指令位宽及数据位寛均为32位，寄存器地址长度为5位，最多可支持<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>5</mn></msup><mo>=</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">2^5=32</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mord">2</span></span></span></span>个寄存器，此外，由于指令不支持直接写入结果至内存，该指令集对寄存器的操作频率将较其他指令集高。</p>
+<h4 id="rv32i-基础整数指令集"><a class="markdownIt-Anchor" href="#rv32i-基础整数指令集"></a> RV32I 基础整数指令集</h4>
+<p>RV32I Base Integer Instructions ( 32位基础整数指令集 )</p>
+<p>RV32I主要包含37条运行指令与2条系统指令。相应的指令表格可通过RSIC-V Reference Card或RISC官方技朮文档得到。</p>
+<p><img src="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/image-20221213153640180.png" alt="RISC-V Reference Card"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">指令按操作类型大致分为</span><br><span class="line">-寄存器的数学/逻辑运算指令</span><br><span class="line">-立即数的数学/逻辑运算指令</span><br><span class="line">-内存的数据储存／访问指令</span><br><span class="line">-程序计数器的分支跳转/无条件跳转指令</span><br></pre></td></tr></table></figure>
+<p>详见：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/jameslzhu/riscv-card">RISC-V Reference Card - Github</a></p>
+<p><a target="_blank" rel="noopener" href="https://riscv.org/technical/specifications/">RISC-V Instruction Set Manual - RISC-V International</a></p>
+<h5 id="寄存器的数学逻辑运算指令"><a class="markdownIt-Anchor" href="#寄存器的数学逻辑运算指令"></a> 寄存器的数学/逻辑运算指令</h5>
+<p>按R-Type结构进行编码，其指令操作码均为七位二进位数的(0110011)，按funct3判断数据的运算类型。</p>
+<p>以算朮加法ADD为例，其funct3为三位二进制的000，操作内容为从地址rs1及rs2对应的32位寄存器中取数据后通过算朮单元进行算朮加法，随后输出计算结果并储存至rd地址所对应的32位寄存器中。完成此流程则认为该指令执行完结。</p>
+<p>下式为ADD指令的一个例子，该指令的rd为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">01111_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，rs1为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0111</mn><msub><mn>0</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">01110_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，rs2为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">01111_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，funct3为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>00</mn><msub><mn>0</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">000_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，funct7为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>000000</mn><msub><mn>0</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">0000000_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>00</mn><mi>F</mi><mn>707</mn><mi>B</mi><msub><mn>3</mn><mn>16</mn></msub><mo>:</mo><mn>000000</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>7</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mn>00</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>d</mi><mo stretchy="false">)</mo></mrow></msub><mn>011001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">00F707B3_{16} : 0000000_{(funct7)}01111_{(rs2)}01110_{(rs1)}000_{(funct3)}01111 _{(rd)}0110011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord">7</span><span class="mord">0</span><span class="mord">7</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">7</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">2</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">d</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p style="color:#5F9EA0;">附注：</p>
+<p style="color:#5F9EA0;">SUB（算朮减法）指令与ADD共用一个funct3值，需通过funct7进行判别。</p>
+<p style="color:#5F9EA0;">SRA（循环右移）指令与SRL共用一个funct3值，需通过funct7进行判别。</p>
+<p style="color:#5F9EA0;">SRA（循环右移）指令将数据的最右位循环至数据的的最高位。</p>
+<p style="color:#5F9EA0;">SLT指令视数据为符号数进行比较，SLTU指令则视数据为无符号数进行比较。
+</p>
+<h5 id="立即数的数学逻辑运算指令"><a class="markdownIt-Anchor" href="#立即数的数学逻辑运算指令"></a> 立即数的数学/逻辑运算指令</h5>
+<p>按I-Type结构进行编码，其指令操作码均为七位二进位数的(0010011)，按funct3判断数据的运算类型。</p>
+<p>以算朮加法ADDI为例，其funct3为三位二进制的000，执行步骤为从地址rs1对应的32位寄存器中取数据，同时扩展立即数至32位数值，随后通过算朮单元进行算朮加法，完成后输出计算结果储存至地址rd所对应的32位寄存器中。完成此流程则认为该指令执行完结。</p>
+<p>下式为ADDI指令的一个例子，其所对应的rd为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">01111_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，rs1为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">01111_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，funct3为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>00</mn><msub><mn>0</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">000_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0017879</mn><msub><mn>3</mn><mn>16</mn></msub><mo>:</mo><mn>00000000000</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>11</mn><mo>:</mo><mn>0</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mi>r</mi><mi>s</mi><mn>1</mn></mrow></msub><mn>00</mn><msub><mn>0</mn><mrow><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mi>r</mi><mi>d</mi></mrow></msub><mn>001001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">00178793_{16} : 000000000001_{(imm[11:0])} 01111_{rs1} 000_{funct3} 01111_{rd}001 0011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord">7</span><span class="mord">8</span><span class="mord">7</span><span class="mord">9</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">1</span><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mtight">0</span><span class="mclose mtight">]</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p style="color:#5F9EA0;">附注：</p>
+<p style="color:#5F9EA0;">一. 符号扩展：</p>
+<p style="color:#5F9EA0;">立即数指令默认进行符号扩展。视所有立即数通过补码形式储存。若立即数最高位为１，则扩展时对其高20位补1。否则对高20位补0。</p>
+<p style="color:#5F9EA0;">32位立即数扩展后的结构为`imm[31:0] = { imm[31:12], imm[11:0] }`</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>( imm[<span class="number">11</span>] == <span class="number">1</span> ) 	imm[<span class="number">31</span>:<span class="number">12</span>] = FFFFF;	<span class="comment">//高20位为1</span></span><br><span class="line"><span class="keyword">else</span>			imm[<span class="number">31</span>:<span class="number">12</span>] = <span class="number">00000</span>;	<span class="comment">//高20位为0</span></span><br></pre></td></tr></table></figure>
+<p style="color:#5F9EA0;">二. 零扩展：</p>
+<p style="color:#5F9EA0;">无论立即数的高位为何，其高位皆补零。
+</p>
+<h5 id="内存读取指令"><a class="markdownIt-Anchor" href="#内存读取指令"></a> 内存读取指令</h5>
+<p>按I-Type结构进行编码，其指令操作码均为七位二进位数的(0000011)，按funct3判断数据的储存方式。</p>
+<p>以字加载LW为例，其funct3为三位二进制的010，该指令先从地址rs1中取数据，与符号扩展的12位立即数进行符号算朮加法，并输出计算结果至32位地址总线，内存则通过地址总线上的值读出数据。并写入该数据至地址rd对应的寄存器。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">LW字加载： 读入四个字节M[31:0]至rd。</span><br><span class="line">LH半字加载：读入二个字节M[15:0]至rd。对高16位采用符号扩展。</span><br><span class="line">LB字节加载：读入一个字节M[ 7:0]至rd。对高24位采用符号扩展。</span><br><span class="line"></span><br><span class="line">LHU无符号半字加载：读入二个字节M[15:0]至rd。对高16位采用零扩展。</span><br><span class="line">LBU无符号字节加载：读入二个字节M[ 7:0 ]至rd。对高24位采用零扩展。</span><br></pre></td></tr></table></figure>
+<p>下式为LW指令的一个例子，其以rs1寄存器的值为基点偏移(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>2</mn><msub><mn>4</mn><mn>10</mn></msub></mrow><annotation encoding="application/x-tex">-24_{10}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">−</span><span class="mord">2</span><span class="mord"><span class="mord">4</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">0</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)后的内存位置读出一个字至rd寄存器中。</p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>E</mi><mn>84270</mn><msub><mn>3</mn><mn>16</mn></msub><mo>:</mo><mn>11111110100</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>11</mn><mo>:</mo><mn>0</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></msub><mn>0100</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mn>01</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>d</mi><mo stretchy="false">)</mo></mrow></msub><mn>000001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">FE842703_{16} : 111111101000_{(imm[11:0])} 01000_{(rs1)} 010_{(funct3)} 01110_{(rd)} 0000011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord">8</span><span class="mord">4</span><span class="mord">2</span><span class="mord">7</span><span class="mord">0</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">1</span><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mtight">0</span><span class="mclose mtight">]</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">d</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p style="color:#5F9EA0;">附注：
+</p><p style="color:#5F9EA0;">假设rs1中的值为32，则访问的内存位置为(32+(-24)) = 8，即rd = M[8][31:0]</p>
+<p style="color:#5F9EA0;">上述表格未表示M的内存地址，完整的描述为M[rs1+imm][31:0]
+</p>
+<h5 id="内存储存指令"><a class="markdownIt-Anchor" href="#内存储存指令"></a> 内存储存指令</h5>
+<p>按S-Type结构进行编码，其指令操作码均为七位二进位数的(0100011)，按funct3判断数据的储存方式。</p>
+<p>以字加载SW为例，其funct3为三位二进制的010，该指令先从rs1中取数据，与符号扩展的12位立即数进行符号算朮加法，并输出计算结果至32位地址总线，指令同时取出rs2的值输出至数据总线。内存则通过地址总线及数据总线上的值。写入该数据至地址对应的区域。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SW储存字： 写入四个字节rs2[31:0]至M[rs1+imm][31:0]。</span><br><span class="line">LH储存半字：写入二个字节rs2[15:0]至M[rs1+imm][15:0]。</span><br><span class="line">LB储存字节：写入一个字节rs2[ 7:0 ]至M[rs1+imm][7:0]。</span><br></pre></td></tr></table></figure>
+<p>下式为SW指令的一个例子，该指令将rs2的值写入以rs1为基点偏移(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>2</mn><msub><mn>0</mn><mn>10</mn></msub></mrow><annotation encoding="application/x-tex">-20_{10}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">−</span><span class="mord">2</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">0</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)后的内存位置。</p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>E</mi><mi>F</mi><mn>4262</mn><msub><mn>3</mn><mn>16</mn></msub><mo>:</mo><mn>111111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>11</mn><mo>:</mo><mn>5</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></msub><mn>0100</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mn>01</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo stretchy="false">)</mo></mrow></msub><mn>0110</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>4</mn><mo>:</mo><mn>0</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></msub><mn>010001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">FEF4 2623_{16} : 1111111_{(imm[11:5])} 01111_{(rs2)} 01000_{(rs1)} 010_{(funct3)} 01100_{(imm[4:0])} 0100011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord">4</span><span class="mord">2</span><span class="mord">6</span><span class="mord">2</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">1</span><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mtight">5</span><span class="mclose mtight">]</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">2</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">4</span><span class="mrel mtight">:</span><span class="mord mtight">0</span><span class="mclose mtight">]</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span></p>
+<h5 id="程序计数器的分支跳转"><a class="markdownIt-Anchor" href="#程序计数器的分支跳转"></a> 程序计数器的分支跳转</h5>
+<p>按B-Type结构进行编码，其指令操作码均为七位二进位数的(1100011)，按funct3实施不同的跳转策略。</p>
+<p>以大于跳转BGE为例，其funct3为三位二进制的101，该指令先从rs1与rs2中取数据，并判断rs1是否大等于于rs2，若真则修改PC的值为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>C</mi><mo>=</mo><mi>P</mi><mi>C</mi><mo>+</mo><mi>i</mi><mi>m</mi><msub><mi>m</mi><mrow><mo stretchy="false">(</mo><mtext>符号扩展</mtext><mo stretchy="false">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">PC = PC+imm_{(符号扩展)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.0147199999999998em;vertical-align:-0.3551999999999999em;"></span><span class="mord mathnormal">i</span><span class="mord mathnormal">m</span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord cjk_fallback mtight">符</span><span class="mord cjk_fallback mtight">号</span><span class="mord cjk_fallback mtight">扩</span><span class="mord cjk_fallback mtight">展</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span>。若否则使<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>C</mi><mo>=</mo><mi>P</mi><mi>C</mi><mo>+</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">PC = PC + 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">4</span></span></span></span>。</p>
+<p>下式为BGE指令的一个例子，若rs1值大于等于rs2，则PC跳转至<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>C</mi><mo>−</mo><mn>2</mn><msub><mn>4</mn><mn>16</mn></msub></mrow><annotation encoding="application/x-tex">PC - 24_{16}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.76666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">2</span><span class="mord"><span class="mord">4</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>C</mi><mi>E</mi><mn>7</mn><mi>D</mi><mi>E</mi><mi>E</mi><msub><mn>3</mn><mn>16</mn></msub><mo>:</mo><mn>111111</mn><msub><mn>0</mn><mrow><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>12</mn><mi mathvariant="normal">∣</mi><mn>10</mn><mo>:</mo><mn>5</mn><mo stretchy="false">]</mo></mrow></msub><mn>0111</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mn>10</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo stretchy="false">)</mo></mrow></msub><mn>1110</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>i</mi><mi>m</mi><mi>m</mi><mo stretchy="false">[</mo><mn>4</mn><mo>:</mo><mn>1</mn><mi mathvariant="normal">∣</mi><mn>11</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></msub><mn>110001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">FCE7 DEE3_{16} : 1111110_{imm[12|10:5]} 01110_{(rs2)}  01111_{(rs1)} 101_{(funct3)}  11101_{(imm[4:1|11])} 1100011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord">7</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">1</span><span class="mord mtight">2</span><span class="mord mtight">∣</span><span class="mord mtight">1</span><span class="mord mtight">0</span><span class="mrel mtight">:</span><span class="mord mtight">5</span><span class="mclose mtight">]</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">2</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">1</span><span class="mord">0</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">m</span><span class="mord mathnormal mtight">m</span><span class="mopen mtight">[</span><span class="mord mtight">4</span><span class="mrel mtight">:</span><span class="mord mtight">1</span><span class="mord mtight">∣</span><span class="mord mtight">1</span><span class="mord mtight">1</span><span class="mclose mtight">]</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p style="color:#5F9EA0;">附注：</p>
+<p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8/3219536">程序计数器( Program Counter ) - 百度百科</a></p>
+<p style="color:#5F9EA0;">BLTU及BGEU对立即数进行零扩展而非符号扩展。
+</p>
+<h5 id="其他指令"><a class="markdownIt-Anchor" href="#其他指令"></a> 其他指令</h5>
+<p>由于所有RV32I指令均已在上表中给出说明，故其他指令不作描述。</p>
+<p><img src="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/RISC-V-Logo.jpg" alt="RISC-V-Logo"></p>
+</div>
+        </div>
+        
+            <div class="kratos-copyright text-center clearfix">
+                <h5 itemprop="copyrightNotice">本作品采用 <a rel="license nofollow" target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a> 进行许可</h5>
+            </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+                <div class="post-like-donate text-center clearfix" id="post-like-donate">
+                
+                
+                    <a class="share" href="javascript:;"><i class="fa fa-share-alt"></i> 分享</a>
+                    <div class="share-wrap" style="display: none;">
+    <div class="share-group">
+        <a href="javascript:;" class="share-plain qq" onclick="share('qq');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-qq"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain qzone" onclick="share('qzone');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-star"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weixin pop style-plain" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weixin"></i>
+            </div>
+            <div class="share-int">
+                <div class="qrcode" id="wechat-qr"></div>
+                <p>打开微信“扫一扫”，打开网页后点击屏幕右上角分享按钮</p>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weibo" onclick="share('weibo');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weibo"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain facebook style-plain" onclick="share('facebook');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-facebook"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain twitter style-plain" onclick="share('twitter');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-twitter"></i>
+            </div>
+        </a>
+    </div>
+    <script type="text/javascript">
+        $(()=>{
+            new QRCode("wechat-qr", {
+                text: "https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/",
+                width: 150,
+                height: 150,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        });
+        function share(dest) {
+            const qqBase        = "https://connect.qq.com/widget/shareqq/index.html?";
+            const weiboBase     = "https://service.weibo.com/share/share.php?";
+            const qzoneBase     = "https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?";
+            const facebookBase  = "https://www.facebook.com/sharer/sharer.php?";
+            const twitterBase   = "https://twitter.com/intent/tweet?";
+            const hostUrl       = "https://starryphantom.github.io/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/";
+            const title         = "「RISC-V处理器 (一.RISC-V指令集)」";
+            const excerpt       = `本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正
+
+ 一.RISC-V
+RISC-V为伯克利研究团队基于精简指令集计算原理建立的一个开放指令集架构。由于其开源、模型化及指令长度固定等特点而被应用...`;
+            let _URL;
+            switch (dest) {
+                case "qq"       : _URL = qqBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";     break;
+                case "weibo"    : _URL = weiboBase+"url="+hostUrl+"&title="+title+excerpt;                                 break;
+                case "qzone"    : _URL = qzoneBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";  break;
+                case "facebook" : _URL = facebookBase+"u="+hostUrl;                                                        break;
+                case "twitter"  : _URL = twitterBase+"text="+title+excerpt+"&url="+hostUrl;                                break;
+            }
+            window.open(_URL);
+        };
+    </script>
+</div>
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/RISC-V/" rel="tag">RISC-V</a>, <a class="tag-none-link" href="/tags/%E7%AE%80%E6%98%93CPU/" rel="tag">简易CPU</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2022-12-13T11:21:39.433Z" itemprop="dateModified">最后编辑：2022-12-13</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 岚星游記-第二章" href="/2022/11/06/202210_小說_岚星游記-第二章/">&lt; 上一篇</a>
+            </div>
+            
+            
+        </nav>
+    
+    
+        <div id="w-comments" class="post-comments"></div>
+<script>
+    var load_comm = () => {
+        const init = () => {
+            new Waline(Object.assign({
+                el: '#w-comments',
+                path: '/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/'
+            }, JSON.parse('{"serverURL":"https://starcafe-oxt9m52gn-starryphantom.vercel.app/","visitor":true}')));
+        }
+        if (typeof Waline === 'undefined') {
+            const src = 'https://unpkg.com/@waline/client@1/dist/Waline.min.js';
+            $.getScript(src, init);
+        } else {
+            init();
+        }
+    };
+</script>
+<noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://waline.js.org/">comments powered by Waline.</a></noscript>
+
+    
+</article>
+
+        
+
+            </section>
+
+        
+
+                
+        </div>
+    </div>
+</div>
+<footer>
+    <div id="footer"  class="ap-lrc"  >
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2022 星間庭園 版权所有.</li>
+                            <li>本站已运行<span id="span_dt">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>Theme <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a></li>
+                            <li>Site built with&nbsp;<i class="fa fa-heart throb" style="color:#d43f57"></i>&nbsp;by 星幻.</li>
+                        </div>
+                        <div>
+                            <li>Powered by <a href="https://hexo.io" target="_blank" rel="nofollow">Hexo</a></li>
+                            <li>Hosted on <a href="https://github.io" target="_blank">Github Pages</a></li>
+                        </div>
+                        <div>
+                            
+                            
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                
+                    <div class="box search-box">
+                        <a href="/search/">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="box theme-box" id="darkmode-switch">
+                        <span class="fa fa-adjust"></span>
+                    </div>
+                
+                
+            </div>
+            <div class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+        <script defer src="https://unpkg.com/bootstrap@3.3.4/dist/js/bootstrap.min.js"></script>
+<script defer src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+<script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+
+
+    <script defer src="https://unpkg.com/aplayer@1.10.1/dist/APlayer.min.js"></script>
+    
+    <script defer src="https://unpkg.com/meting@2/dist/Meting.min.js"></script>
+    <meting-js
+        server="netease"
+        type="playlist"
+        id="361837121"
+        order="random"
+        fixed="true"
+    >
+    </meting-js>
+
+
+
+    <script defer src="https://unpkg.com/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+<script defer src="https://unpkg.com/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script defer src="/js/kratosr.min.js"></script>
+<script defer src="/js/pjax.min.js"></script>
+
+
+
+<!-- Extra support for third-party plguins  -->
+
+
+    </body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  <link rel="icon" href="/images/StarCafe.jpg">
+  <title>RISC-V处理器 (二.处理器的基本构成) | 星間庭園</title>
+  <meta name="author" content="星空幻梦" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="RISC-V, 简易CPU" />
+  
+  <meta name="description" content="本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正。   电路建模 复杂电路通常使用自顶向下的设计方法，先决定电路所需的功能，划分出实现功能的各个子模块，确保顶层设计无逻辑错误后，再进行各子模块的设计。 处理器的结构总是与指令集相关，对于RISC-V指令集，处理器需要按指令集的要求对数据进行处理操作。  一. 指令行为分析 对于任意一条RISC-V指令，它在处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RISC-V处理器 (二.处理器的基本构成)">
+<meta property="og:url" content="https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/index.html">
+<meta property="og:site_name" content="星間庭園">
+<meta property="og:description" content="本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正。   电路建模 复杂电路通常使用自顶向下的设计方法，先决定电路所需的功能，划分出实现功能的各个子模块，确保顶层设计无逻辑错误后，再进行各子模块的设计。 处理器的结构总是与指令集相关，对于RISC-V指令集，处理器需要按指令集的要求对数据进行处理操作。  一. 指令行为分析 对于任意一条RISC-V指令，它在处">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/RISC-V-Logo.jpg">
+<meta property="article:published_time" content="2022-12-22T04:26:58.000Z">
+<meta property="article:modified_time" content="2022-12-21T16:38:50.114Z">
+<meta property="article:author" content="星空幻梦">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="简易CPU">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/RISC-V-Logo.jpg">
+  
+  <!-- 站点验证相关 -->
+  
+    
+    
+    
+  
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kratosr.min.css" type="text/css" media="all">
+  
+    <link rel="stylesheet" id="darkmode-css" href="/css/kr-color-dark.min.css" type="text/css" media="(prefers-color-scheme: dark)">
+    <script src="/js/kr-dark.min.js"></script>
+  
+  
+    <link rel="stylesheet" id="highlight-css" href="/css/highlight/night-eighties.min.css" type="text/css" media="all">
+  
+  
+  <link rel="stylesheet" id="fontawe-css" href="https://unpkg.com/font-awesome@4.7.0/css/font-awesome.min.css" type="text/css" media="all">
+  <link rel="stylesheet" id="nprogress-css" href="https://unpkg.com/nprogress@0.2.0/nprogress.css" type="text/css" media="all">
+  
+  
+  
+    <link rel="stylesheet" href="https://unpkg.com/aplayer@1.10.1/dist/APlayer.min.css">
+  
+  
+    <link rel="stylesheet" href="https://unpkg.com/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+  
+  <!-- 不得不预先加载的一些JS文件 -->
+  <script src="https://unpkg.com/jquery@3.6.0/dist/jquery.min.js"></script>
+  
+    <script src="https://unpkg.com/qrcode_js@1.0.0/qrcode.min.js"></script>
+  
+  
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('/images/banner.webp');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/bg.webp');
+        }
+      }
+    
+  </style>
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    
+                                        <li><a href="/"><i class="fa fa-home"></i>首页</a></li>
+                                    
+                                
+                                    
+                                        <li><a href="/archives/"><i class="fa fa-file"></i>档案馆</a></li>
+                                    
+                                
+                                    
+                                        <li><a href="/friends/"><i class="fa fa-paw"></i>朋友们</a></li>
+                                    
+                                
+                                    
+                                        <li>
+                                            <a><i class="fa fa-link"></i>联系方式</a>
+                                            <ul class="sub-menu">
+                                                
+                                                    
+                                                
+                                                    
+                                                        <li><a target="_blank" rel="noopener" href="https://qm.qq.com/cgi-bin/qm/qr?k=JRIfUfccKhUE8SuvGkk-bWc6yKutGUHT&noverify=0">作者QQ</a></li>
+                                                    
+                                                
+                                                    
+                                                        <li><a target="_blank" rel="noopener" href="https://jq.qq.com/?_wv=1027&k=OO2Rsxzm">群-星间庭园</a></li>
+                                                    
+                                                
+                                            </ul>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">星間庭園</a></div>
+                    <div class="nav-toggle">
+                        <a class="kratos-nav-toggle js-kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>星間庭園</h2> <br />
+                        <span>欢迎来到星间庭园,要来杯红荼休息会吗</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+                    
+                        
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/avatar.jpg" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center">真正旳学渣一枚，目标是快乐地活过每天~</p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                12
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                5
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                11
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix">
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B5%E8%B7%AF%E5%BB%BA%E6%A8%A1"><span class="toc-text"> 电路建模</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80-%E6%8C%87%E4%BB%A4%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90"><span class="toc-text"> 一. 指令行为分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%BE%97%E6%8C%87%E4%BB%A4"><span class="toc-text"> 获得指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%8C%87%E4%BB%A4"><span class="toc-text"> 分析指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%96%E5%BE%97%E6%95%B0%E6%8D%AE"><span class="toc-text"> 取得数据</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E8%8E%B7%E5%8F%96"><span class="toc-text"> 寄存器获取</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AB%8B%E5%8D%B3%E6%95%B0%E6%89%A9%E5%B1%95"><span class="toc-text"> 立即数扩展</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="toc-text"> 数据处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%82%A8%E5%AD%98"><span class="toc-text"> 数据储存</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C-%E9%80%BB%E8%BE%91%E6%A1%86%E5%9B%BE"><span class="toc-text"> 二. 逻辑框图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89-%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86"><span class="toc-text"> 三. 模块划分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%9A%E8%B7%AF"><span class="toc-text"> 数据通路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-text"> 程序计数器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4%E5%82%A8%E5%AD%98%E5%99%A8"><span class="toc-text"> 指令储存器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%91%E7%A0%81%E6%A8%A1%E5%9D%97"><span class="toc-text"> 译码模块</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%84"><span class="toc-text"> 寄存器组</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E6%9C%AE%E9%80%BB%E8%BE%91%E5%8D%95%E5%85%83alu"><span class="toc-text"> 算朮逻辑单元（ALU）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E5%AD%98%E5%82%A8%E5%99%A8ram"><span class="toc-text"> 随机存储器（RAM）</span></a></li></ol></li></ol></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类目录</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Blog/">Blog</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/C/">C++</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B0%8F%E8%AF%B4/">小说</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E7%94%B5/">数电</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%A8%A1%E7%94%B5/">模电</a><span class="category-list-count">2</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/Blog/" style="font-size: 0.7em;">Blog</a> <a href="/tags/Hexo/" style="font-size: 0.6em;">Hexo</a> <a href="/tags/RISC-V/" style="font-size: 0.7em;">RISC-V</a> <a href="/tags/%E5%8D%8A%E5%AF%BC%E4%BD%93%E5%99%A8%E4%BB%B6/" style="font-size: 0.7em;">半导体器件</a> <a href="/tags/%E5%B0%8F%E8%AF%B4/" style="font-size: 0.8em;">小说</a> <a href="/tags/%E5%B2%9A%E6%98%9F%E6%B8%B8%E8%AE%B0/" style="font-size: 0.7em;">岚星游记</a> <a href="/tags/%E6%95%B0%E7%94%B5/" style="font-size: 0.6em;">数电</a> <a href="/tags/%E6%A8%A1%E7%94%B5/" style="font-size: 0.8em;">模电</a> <a href="/tags/%E7%AE%80%E6%98%93CPU/" style="font-size: 0.7em;">简易CPU</a> <a href="/tags/%E8%84%9A%E6%9C%AC/" style="font-size: 0.7em;">脚本</a> <a href="/tags/%E8%A1%A5%E6%A1%A3/" style="font-size: 0.6em;">补档</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/"><i class="fa  fa-book"></i> RISC-V处理器 (二.处理器的基本构成)</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/12/13/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%B8%80.RISC-V%E6%8C%87%E4%BB%A4%E9%9B%86)/"><i class="fa  fa-book"></i> RISC-V处理器 (一.RISC-V指令集)</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/06/202210_%E5%B0%8F%E8%AA%AA_%E5%B2%9A%E6%98%9F%E6%B8%B8%E8%A8%98-%E7%AC%AC%E4%BA%8C%E7%AB%A0/"><i class="fa  fa-book"></i> 岚星游記-第二章</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/01/202211_%E6%95%B0%E7%94%B5_TTL%E9%80%BB%E8%BE%91%E9%97%A8/"><i class="fa  fa-book"></i> 逻辑门的电路实现</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2022/11/01/202211_%E6%A8%A1%E7%94%B5_%E5%8D%8A%E5%AF%BC%E4%BD%93%E4%BA%8C%E6%9E%81%E7%AE%A1%E6%A8%A1%E5%9E%8B/"><i class="fa  fa-book"></i> 模电笔记-半导体二极管模型</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+                    
+
+        
+
+            <section class="col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    
+    <link itemprop="mainEntityOfPage" href="https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/">
+    <div class="kratos-hentry kratos-post-inner clearfix">
+        <header class="kratos-entry-header">
+            
+                <h1 class="kratos-entry-title text-center" itemprop="name headline">RISC-V处理器 (二.处理器的基本构成)</h1>
+            
+            
+            <ul class="kratos-post-meta text-center">
+                <li><time datetime="2022-12-22T04:26:58.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2022-12-22</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">星空幻梦</span>
+                </li>
+                <li>
+                    <i class="fa fa-edit"></i> 
+                    
+                    
+                        ~3.21K
+                    
+                    字
+                </li>
+                
+                    <li id="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/" class="leancloud_visitors" data-flag-title="RISC-V处理器 (二.处理器的基本构成)">
+                        <i class="fa fa-eye"></i>
+                        <span class="leancloud-visitors-count"> </span> 次阅读
+                    </li>
+                    
+                        <li>
+                            <i class="fa fa-commenting-o"></i>
+                            <span data-xid="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/" class="waline-comment-count"> </span> 条评论
+                        </li>
+                    
+                
+            </ul>
+        </header>
+        <div class="kratos-post-content">
+            <div id="expire-alert" class="alert alert-warning hidden" role="alert">
+                <div class="icon"><i class="fa fa-warning"></i></div>
+                <div class="text"><p>本文最后编辑于 <time datetime="1671640730114"></time> 前，其中的内容可能需要更新。</p></div>
+            </div>
+            
+                <div class="kratos-post-inner-toc">
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B5%E8%B7%AF%E5%BB%BA%E6%A8%A1"><span class="toc-number">1.</span> <span class="toc-text"> 电路建模</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80-%E6%8C%87%E4%BB%A4%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90"><span class="toc-number">1.1.</span> <span class="toc-text"> 一. 指令行为分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%BE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">1.1.1.</span> <span class="toc-text"> 获得指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%8C%87%E4%BB%A4"><span class="toc-number">1.1.2.</span> <span class="toc-text"> 分析指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%96%E5%BE%97%E6%95%B0%E6%8D%AE"><span class="toc-number">1.1.3.</span> <span class="toc-text"> 取得数据</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E8%8E%B7%E5%8F%96"><span class="toc-number">1.1.3.1.</span> <span class="toc-text"> 寄存器获取</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%AB%8B%E5%8D%B3%E6%95%B0%E6%89%A9%E5%B1%95"><span class="toc-number">1.1.3.2.</span> <span class="toc-text"> 立即数扩展</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="toc-number">1.1.4.</span> <span class="toc-text"> 数据处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%82%A8%E5%AD%98"><span class="toc-number">1.1.5.</span> <span class="toc-text"> 数据储存</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C-%E9%80%BB%E8%BE%91%E6%A1%86%E5%9B%BE"><span class="toc-number">1.2.</span> <span class="toc-text"> 二. 逻辑框图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89-%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86"><span class="toc-number">1.3.</span> <span class="toc-text"> 三. 模块划分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%9A%E8%B7%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text"> 数据通路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">1.3.2.</span> <span class="toc-text"> 程序计数器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4%E5%82%A8%E5%AD%98%E5%99%A8"><span class="toc-number">1.3.3.</span> <span class="toc-text"> 指令储存器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%91%E7%A0%81%E6%A8%A1%E5%9D%97"><span class="toc-number">1.3.4.</span> <span class="toc-text"> 译码模块</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%84"><span class="toc-number">1.3.5.</span> <span class="toc-text"> 寄存器组</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%97%E6%9C%AE%E9%80%BB%E8%BE%91%E5%8D%95%E5%85%83alu"><span class="toc-number">1.3.6.</span> <span class="toc-text"> 算朮逻辑单元（ALU）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E5%AD%98%E5%82%A8%E5%99%A8ram"><span class="toc-number">1.3.7.</span> <span class="toc-text"> 随机存储器（RAM）</span></a></li></ol></li></ol></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><p style="color:#5F9EA0;">本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正。</p>
+<hr>
+<h2 id="电路建模"><a class="markdownIt-Anchor" href="#电路建模"></a> 电路建模</h2>
+<p>复杂电路通常使用自顶向下的设计方法，先决定电路所需的功能，划分出实现功能的各个子模块，确保顶层设计无逻辑错误后，再进行各子模块的设计。</p>
+<p>处理器的结构总是与指令集相关，对于RISC-V指令集，处理器需要按指令集的要求对数据进行处理操作。</p>
+<h3 id="一-指令行为分析"><a class="markdownIt-Anchor" href="#一-指令行为分析"></a> 一. 指令行为分析</h3>
+<p>对于任意一条RISC-V指令，它在处理器中的执行步骤皆可概括如下。</p>
+<p><img src="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/image-20221222003650031.png" alt></p>
+<h4 id="获得指令"><a class="markdownIt-Anchor" href="#获得指令"></a> 获得指令</h4>
+<p>从外部或储存器获得当前需要执行的指令，如：ADD rd rs1 rs2；</p>
+<h4 id="分析指令"><a class="markdownIt-Anchor" href="#分析指令"></a> 分析指令</h4>
+<p>获得指令后，使可以按指令的内容进行执行，但电路中指令以二进制方式储存，电路得到的只是32位的0、1，不能直接用于执行。为使电路&quot;理解&quot;指令的内容，需要对指令进行&quot;翻译&quot;以得到电路控制讯号。</p>
+<p>对此，处理器须加入一个译码模块，作用按指令内容为生成电路各模块的控制讯号。</p>
+<p>如对<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>D</mi><mi>D</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>d</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>s</mi><mn>1</mn><mi mathvariant="normal">_</mi><mi>R</mi><mi>s</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">ADD\_Rd\_Rs1\_Rs2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">d</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">1</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">2</span></span></span></span>进行分析，得知ALU执行加法操作，数据来源A的地址为Rs1，数据来源B的地址为Rs2；运算结果保存至Rd。此时应设定电路为寄存器取数据的加法模式。</p>
+<p>实例：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>00</mn><mi>F</mi><mn>707</mn><mi>B</mi><msub><mn>3</mn><mn>16</mn></msub><mo>=</mo><mn>000000</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>7</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>s</mi><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mn>00</mn><msub><mn>0</mn><mrow><mo stretchy="false">(</mo><mi>f</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo stretchy="false">)</mo></mrow></msub><mn>0111</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>r</mi><mi>d</mi><mo stretchy="false">)</mo></mrow></msub><mn>011001</mn><msub><mn>1</mn><mrow><mo stretchy="false">(</mo><mi>o</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo stretchy="false">)</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">00F707B3_{16} = 0000000_{(funct7)}01111_{(rs2)}01110_{(rs1)}000_{(funct3)}01111 _{(rd)}0110011_{(opcode)2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord">7</span><span class="mord">0</span><span class="mord">7</span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span><span class="mord"><span class="mord">3</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">6</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.9996399999999999em;vertical-align:-0.3551999999999999em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">7</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">2</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">s</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">0</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.10764em;">f</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span><span class="mord mtight">3</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">d</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.34480000000000005em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">e</span><span class="mclose mtight">)</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3551999999999999em;"><span></span></span></span></span></span></span></span></span></span>进行译码，从<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mi>p</mi><mi>c</mi><mi>o</mi><mi>d</mi><mi>e</mi><mo>=</mo><mn>011001</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">Opcode = 0110011_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mord mathnormal">p</span><span class="mord mathnormal">c</span><span class="mord mathnormal">o</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>得知为R-Type类型，从<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>u</mi><mi>n</mi><mi>c</mi><mi>t</mi><mn>3</mn><mo>=</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">Funct 3 = 000</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord mathnormal">u</span><span class="mord mathnormal">n</span><span class="mord mathnormal">c</span><span class="mord mathnormal">t</span><span class="mord">3</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">0</span><span class="mord">0</span></span></span></span>得到电路执行加法操作，数据来源A的地址为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>s</mi><mn>1</mn><mo>=</mo><mn>0111</mn><msub><mn>0</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">Rs1 = 01110_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，数据来源B的地址为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>s</mi><mn>2</mn><mo>=</mo><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">Rs2 = 01111_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，运算结果保存至<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>d</mi><mo>=</mo><mn>0111</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">Rd = 01111 _2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p style="color:#5F9EA0;">附注：在实际的电路译码中，不分析Rs1,Rs2,Rd的信息，而是根据Opcode及指令中的其他信息位设置数据通路与算朮单元。</p>
+<h4 id="取得数据"><a class="markdownIt-Anchor" href="#取得数据"></a> 取得数据</h4>
+<h5 id="寄存器获取"><a class="markdownIt-Anchor" href="#寄存器获取"></a> 寄存器获取</h5>
+<p>出于节省指令长度，方便数据调用等考量，指令中并不直接包含需操作的32位数据。而是记录了储存数据的5位地址数据。处理器通过5位地址对储存单元进行访问，间接得到所需的运算数据。在这一步中，处理器中需要<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>5</mn></msup><mo>=</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">2^5=32</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mord">2</span></span></span></span>个32位寄存器组以储存临时数据。</p>
+<p>如：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>D</mi><mi>D</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>d</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>s</mi><mn>1</mn><mi mathvariant="normal">_</mi><mi>R</mi><mi>s</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">ADD\_Rd\_Rs1\_Rs2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">d</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">1</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">2</span></span></span></span>，结果储存至Rd，数据来源A的地址为Rs1，数据来源B的地址为Rs2；从Rs1,Rs2中获得寄存的32位数据。</p>
+<p style="color:#5F9EA0;">附注：在处理器中，少量的临时数据被储存于寄存器而非内存，其特点为访问速度快，需要时可直接进行存放以获得数据，若储存于内存则至少需要占用一个指令周期以获得数据。</p>
+<h5 id="立即数扩展"><a class="markdownIt-Anchor" href="#立即数扩展"></a> 立即数扩展</h5>
+<p>对于立即数形式指令，其运算数据被部份地储存于指令当中，一般为12位(I-Type)或20位(J-Type)。不符合32位操作数的标准，需要对数据进行扩展以得到完整的32位操作数。在RISC-V中，大部分立即数皆按有符号数进行扩展处理。</p>
+<p>如：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>D</mi><mi>D</mi><mi>I</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>d</mi><mi mathvariant="normal">_</mi><mi>R</mi><mi>s</mi><mn>1</mn><mi mathvariant="normal">_</mi><mn>99</mn></mrow><annotation encoding="application/x-tex">ADDI\_Rd\_Rs1\_99</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.00444em;vertical-align:-0.31em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">d</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mord mathnormal">s</span><span class="mord">1</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord">9</span><span class="mord">9</span></span></span></span>，结果储存至Rd，数据来源A的地址为Rs1，数据来源B为指令中储存的99，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><msub><mn>9</mn><mn>10</mn></msub><mo>=</mo><mn>0110</mn><mi mathvariant="normal">_</mi><mn>001</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">99_{10} = 0110\_0011_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">9</span><span class="mord"><span class="mord">9</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">0</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.95444em;vertical-align:-0.31em;"></span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，但输入为32位，扩展为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><msub><mn>9</mn><mn>10</mn></msub><mo>=</mo><mn>0</mn><mo>…</mo><mo stretchy="false">(</mo><mn>22</mn><mtext>位</mtext><mn>0</mn><mo stretchy="false">)</mo><mo>…</mo><mn>0</mn><mi mathvariant="normal">_</mi><mn>0110</mn><mi mathvariant="normal">_</mi><mn>001</mn><msub><mn>1</mn><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">99_{10} = 0…(22位0)…0\_ 0110\_0011_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.79444em;vertical-align:-0.15em;"></span><span class="mord">9</span><span class="mord"><span class="mord">9</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mord mtight">0</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mord">2</span><span class="mord cjk_fallback">位</span><span class="mord">0</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">0</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord">0</span><span class="mord">1</span><span class="mord">1</span><span class="mord">0</span><span class="mord" style="margin-right:0.02778em;">_</span><span class="mord">0</span><span class="mord">0</span><span class="mord">1</span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p style="color:#5F9EA0;">附注：符号扩展，由于立即数通过补码保存，正数的补码表示为其自身的二进制值，负数的补码表示为自身的二进制值取反加一，如$7_{10} = 0111_2；-7_{10} = 1001_2$，为7的4位二进制表示，若以8位表示则有$7_{10} = 00000111_2；-7_{10} = 11111001_2$，把4位二进制扩展为8位，只需判断数据的符号位（最高位），随后随扩展每一位值与最高值相同即可。</p>
+<h4 id="数据处理"><a class="markdownIt-Anchor" href="#数据处理"></a> 数据处理</h4>
+<p>参考指令集中定义的几种数据处理方式，分别有算朮加法、按位与、按位或、左右移。对数据的处理一般通过算朮逻辑单元（ALU）进行处理。</p>
+<h4 id="数据储存"><a class="markdownIt-Anchor" href="#数据储存"></a> 数据储存</h4>
+<p>假若处理结果不被保存或不改变状态机，则数据运算显得毫无意义。对大部分指令而言，数据的处理结果需要重新写回至寄存器组中等待后续指令的调用。又或是通过Store指令储存至&quot;大型&quot;储存器，如内存当中。</p>
+<h3 id="二-逻辑框图"><a class="markdownIt-Anchor" href="#二-逻辑框图"></a> 二. 逻辑框图</h3>
+<p>下为RISC-V处理器的基础构成框图，其组成与上述提到的指令执行步骤相差不大。</p>
+<p><img src="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/image-20221221222509627.png" alt></p>
+<h3 id="三-模块划分"><a class="markdownIt-Anchor" href="#三-模块划分"></a> 三. 模块划分</h3>
+<h4 id="数据通路"><a class="markdownIt-Anchor" href="#数据通路"></a> 数据通路</h4>
+<p>数据通路是处理器的重要构成部份，主要负责模块间的数据传递。主要的部件为受译码模块控制的数据选择器。译码器通过选择器控制各模块的输入数据，例如选择ALU运算数据从寄存器或是立即数单元进行输入。</p>
+<p>数据通路的设计需与指令相配合，对于RISC-V指令集的指令执行流程，可以得到一种数据通路设计如上。</p>
+<h4 id="程序计数器"><a class="markdownIt-Anchor" href="#程序计数器"></a> 程序计数器</h4>
+<p>在处理器中，指令一般被顺序存放于存储器，存储器的特点时访问数据时需提供地址，随后存储器通过地址取得被储存的数据。因此，程序计数器的核心为记录当前执行的指令计数，随后通过此计数值于存储器中读出相应的32位指令码。</p>
+<p>在RISC-V中，若不考虑跳转与分支等情况，则PC在每条指令执行完毕后自增4。对应的电路为一组32位触发器及一个32位加法器。</p>
+<h4 id="指令储存器"><a class="markdownIt-Anchor" href="#指令储存器"></a> 指令储存器</h4>
+<p>存放指令的存储区域，可以是专用的指令储存器，亦可以是内存中特定的一块区域。</p>
+<h4 id="译码模块"><a class="markdownIt-Anchor" href="#译码模块"></a> 译码模块</h4>
+<p>翻译指令编码为控制讯号的电路，一般需与数据通路及其他模块协同设计。作为例子，译码器需为算朮逻辑单元提供操作码，以确保算朮逻辑单元的行为正确。亦需为数据通路中的各数据选择器提供操作讯号，确保各模块的输入数据正确。</p>
+<h4 id="寄存器组"><a class="markdownIt-Anchor" href="#寄存器组"></a> 寄存器组</h4>
+<p>处理器临时存放程序数据的寄存器，寄存器组的加入使程序数据能被迅速取用而无需专门访问内存空间，减少电路的延时。</p>
+<h4 id="算朮逻辑单元alu"><a class="markdownIt-Anchor" href="#算朮逻辑单元alu"></a> 算朮逻辑单元（ALU）</h4>
+<p>算朮逻辑单元的行为与使用的指令集有重要关系。对于RV32I指令集，指令集中包含了加减法、与、或、或非、移位、比较等操作指令。对应地需为ALU设计加法器及逻辑单元，从而实现指令集规定的操作行为。</p>
+<h4 id="随机存储器ram"><a class="markdownIt-Anchor" href="#随机存储器ram"></a> 随机存储器（RAM）</h4>
+<p>随机存储单元用于大规模地保存程序中的数据，对于大型程序，32个寄存器并不足以存放所有程序数据，但增加寄存器将导致地址位宽的进一步上升，使指令体系变得臃肿。因此必须使用规模更大，代价更低的器件以储存大量的运行数据。其中随机存储单元由于成本相对较低，数据可随机存放等特点而被广泛用于数据存储中。</p>
+<p style="color:#5F9EA0;">附注：随机存储器中随机二字不是指获取的数据随机，而是指电路可以非顺序的方式读取储存器中的数据。如磁带、CD、硬碟等存储介质需从数据起始点开始一个个数据读取，而不能直接读取某一位置的数据。而随机存储器则可直接读出存储器中指定的数据，因此称为随机存储器。</p>
+<p><img src="/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/RISC-V-Logo.jpg" alt></p>
+</div>
+        </div>
+        
+            <div class="kratos-copyright text-center clearfix">
+                <h5 itemprop="copyrightNotice">本作品采用 <a rel="license nofollow" target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a> 进行许可</h5>
+            </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+                <div class="post-like-donate text-center clearfix" id="post-like-donate">
+                
+                
+                    <a class="share" href="javascript:;"><i class="fa fa-share-alt"></i> 分享</a>
+                    <div class="share-wrap" style="display: none;">
+    <div class="share-group">
+        <a href="javascript:;" class="share-plain qq" onclick="share('qq');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-qq"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain qzone" onclick="share('qzone');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-star"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weixin pop style-plain" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weixin"></i>
+            </div>
+            <div class="share-int">
+                <div class="qrcode" id="wechat-qr"></div>
+                <p>打开微信“扫一扫”，打开网页后点击屏幕右上角分享按钮</p>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain weibo" onclick="share('weibo');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-weibo"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain facebook style-plain" onclick="share('facebook');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-facebook"></i>
+            </div>
+        </a>
+        <a href="javascript:;" class="share-plain twitter style-plain" onclick="share('twitter');" rel="nofollow">
+            <div class="icon-wrap">
+                <i class="fa fa-twitter"></i>
+            </div>
+        </a>
+    </div>
+    <script type="text/javascript">
+        $(()=>{
+            new QRCode("wechat-qr", {
+                text: "https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/",
+                width: 150,
+                height: 150,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        });
+        function share(dest) {
+            const qqBase        = "https://connect.qq.com/widget/shareqq/index.html?";
+            const weiboBase     = "https://service.weibo.com/share/share.php?";
+            const qzoneBase     = "https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?";
+            const facebookBase  = "https://www.facebook.com/sharer/sharer.php?";
+            const twitterBase   = "https://twitter.com/intent/tweet?";
+            const hostUrl       = "https://starryphantom.github.io/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/";
+            const title         = "「RISC-V处理器 (二.处理器的基本构成)」";
+            const excerpt       = `本文为通过Verliog HDL编写简易RISC-V CPU的试验笔记，如有错误敬请指正。
+
+ 电路建模
+复杂电路通常使用自顶向下的设计方法，先决定电路所需的功能，划分出实现功能的各个子模块，确保顶层设计无逻辑错误后，再进行各子模块的...`;
+            let _URL;
+            switch (dest) {
+                case "qq"       : _URL = qqBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";     break;
+                case "weibo"    : _URL = weiboBase+"url="+hostUrl+"&title="+title+excerpt;                                 break;
+                case "qzone"    : _URL = qzoneBase+"url="+hostUrl+"&title="+title+"&desc=&summary="+excerpt+"&site=cxpy";  break;
+                case "facebook" : _URL = facebookBase+"u="+hostUrl;                                                        break;
+                case "twitter"  : _URL = twitterBase+"text="+title+excerpt+"&url="+hostUrl;                                break;
+            }
+            window.open(_URL);
+        };
+    </script>
+</div>
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/RISC-V/" rel="tag">RISC-V</a>, <a class="tag-none-link" href="/tags/%E7%AE%80%E6%98%93CPU/" rel="tag">简易CPU</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2022-12-21T16:38:50.114Z" itemprop="dateModified">最后编辑：2022-12-22</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" RISC-V处理器 (一.RISC-V指令集)" href="/2022/12/13/202212-数电-RISC-V处理器 (一.RISC-V指令集)/">&lt; 上一篇</a>
+            </div>
+            
+            
+        </nav>
+    
+    
+        <div id="w-comments" class="post-comments"></div>
+<script>
+    var load_comm = () => {
+        const init = () => {
+            new Waline(Object.assign({
+                el: '#w-comments',
+                path: '/2022/12/22/202212-%E6%95%B0%E7%94%B5-RISC-V%E5%A4%84%E7%90%86%E5%99%A8%20(%E4%BA%8C.%E8%99%95%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%9E%84%E6%88%90)/'
+            }, JSON.parse('{"serverURL":"https://starcafe-oxt9m52gn-starryphantom.vercel.app/","visitor":true}')));
+        }
+        if (typeof Waline === 'undefined') {
+            const src = 'https://unpkg.com/@waline/client@1/dist/Waline.min.js';
+            $.getScript(src, init);
+        } else {
+            init();
+        }
+    };
+</script>
+<noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://waline.js.org/">comments powered by Waline.</a></noscript>
+
+    
+</article>
+
+        
+
+            </section>
+
+        
+
+                
+        </div>
+    </div>
+</div>
+<footer>
+    <div id="footer"  class="ap-lrc"  >
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2022 星間庭園 版权所有.</li>
+                            <li>本站已运行<span id="span_dt">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>Theme <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a></li>
+                            <li>Site built with&nbsp;<i class="fa fa-heart throb" style="color:#d43f57"></i>&nbsp;by 星空幻梦.</li>
+                        </div>
+                        <div>
+                            <li>Powered by <a href="https://hexo.io" target="_blank" rel="nofollow">Hexo</a></li>
+                            <li>Hosted on <a href="https://github.io" target="_blank">Github Pages</a></li>
+                        </div>
+                        <div>
+                            
+                            
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                
+                    <div class="box search-box">
+                        <a href="/search/">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="box theme-box" id="darkmode-switch">
+                        <span class="fa fa-adjust"></span>
+                    </div>
+                
+                
+            </div>
+            <div class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+        <script defer src="https://unpkg.com/bootstrap@3.3.4/dist/js/bootstrap.min.js"></script>
+<script defer src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+<script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+
+
+    <script defer src="https://unpkg.com/aplayer@1.10.1/dist/APlayer.min.js"></script>
+    
+    <script defer src="https://unpkg.com/meting@2/dist/Meting.min.js"></script>
+    <meting-js
+        server="netease"
+        type="playlist"
+        id="361837121"
+        order="random"
+        fixed="true"
+    >
+    </meting-js>
+
+
+
+    <script defer src="https://unpkg.com/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+<script defer src="https://unpkg.com/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script defer src="/js/kratosr.min.js"></script>
+<script defer src="/js/pjax.min.js"></script>
+
+
+
+<!-- Extra support for third-party plguins  -->
+
+
+    </body>
+</html>
